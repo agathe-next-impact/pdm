@@ -110,14 +110,6 @@ export default async function Home() {
         </section>
         <section className="mx-auto max-w-6xl px-4 py-12" id="feed">
           <div className="mb-6 flex items-end justify-between gap-4">
-            <div>
-              <h2 className="pdm-display text-4xl font-extrabold tracking-tight">Derniers specimens</h2>
-              {isDemo ? (
-                <p className="pdm-mono mt-2 text-xs text-[var(--pdm-amber)]">
-                  Mode demo: configure DATABASE_URI pour afficher les vrais posts Payload.
-                </p>
-              ) : null}
-            </div>
             <Link className="hidden rounded-full border border-[var(--pdm-border-hi)] px-4 py-2 font-bold text-[var(--pdm-dim)] transition hover:text-[var(--pdm-text)] sm:inline" href="/publier">
               Ajouter le tien
             </Link>
