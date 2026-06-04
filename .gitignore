@@ -5,6 +5,7 @@ node_modules
 dist
 build
 payload-types.ts
+tsconfig.tsbuildinfo
 
 .vercel
 .env*
