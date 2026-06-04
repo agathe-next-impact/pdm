@@ -1,5 +1,7 @@
 'use server'
 
+import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { createSession, clearSession } from '@/lib/auth'
@@ -7,11 +9,89 @@ import { createToken, hashToken } from '@/lib/crypto'
 import { sendMagicLink } from '@/lib/email'
 import { getPayloadClient } from '@/lib/payload'
 import { slugify } from '@/lib/slugs'
-import { magicLinkSchema, postSchema } from '@/lib/validation'
+import { magicLinkSchema, postSchema, rateSchema } from '@/lib/validation'
 
 export type ActionState = {
   ok?: boolean
   message?: string
+}
+
+export type RateState = {
+  ok: boolean
+  message: string
+  average?: number
+  count?: number
+}
+
+const votesCookie = 'pdm_votes'
+
+function parseVotedSlugs(value: string | undefined): string[] {
+  if (!value) return []
+  return value
+    .split(',')
+    .map((slug) => slug.trim())
+    .filter(Boolean)
+}
+
+export async function ratePost(slug: string, rating: number): Promise<RateState> {
+  const parsed = rateSchema.safeParse({ slug, rating })
+  if (!parsed.success) {
+    return { ok: false, message: 'Note invalide (1 a 5).' }
+  }
+
+  const cookieStore = await cookies()
+  const voted = parseVotedSlugs(cookieStore.get(votesCookie)?.value)
+  if (voted.includes(parsed.data.slug)) {
+    return { ok: false, message: 'Tu as deja vote pour ce projet.' }
+  }
+
+  try {
+    const payload = await getPayloadClient()
+    const posts = await payload.find({
+      collection: 'posts',
+      limit: 1,
+      where: {
+        and: [{ slug: { equals: parsed.data.slug } }, { status: { equals: 'published' } }],
+      },
+    })
+
+    const post = posts.docs[0]
+    if (!post) {
+      return { ok: false, message: 'Projet introuvable.' }
+    }
+
+    const nextSum = (post.ratingSum ?? 0) + parsed.data.rating
+    const nextCount = (post.ratingCount ?? 0) + 1
+
+    await payload.update({
+      collection: 'posts',
+      id: post.id,
+      data: {
+        ratingSum: nextSum,
+        ratingCount: nextCount,
+      },
+    })
+
+    cookieStore.set(votesCookie, [...voted, parsed.data.slug].join(','), {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+    })
+
+    revalidatePath('/')
+    revalidatePath(`/p/${parsed.data.slug}`)
+
+    return {
+      ok: true,
+      message: 'Merci, ton vote est enregistre.',
+      average: nextCount ? nextSum / nextCount : 0,
+      count: nextCount,
+    }
+  } catch {
+    return { ok: false, message: 'Vote indisponible (base non configuree).' }
+  }
 }
 
 export async function requestMagicLink(_: ActionState, formData: FormData): Promise<ActionState> {

@@ -2,7 +2,8 @@ import Link from 'next/link'
 
 import { Header } from '@/components/Header'
 import { Merdometre, Swirl } from '@/components/PdmMark'
-import { demoPosts, type PublicPost } from '@/lib/demo-posts'
+import { Stars } from '@/components/Stars'
+import { demoPosts, ratingAverage, type PublicPost } from '@/lib/demo-posts'
 import { getPayloadClient } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -41,6 +42,8 @@ export default async function Home() {
       budget: post.budget,
       deadline: post.deadline,
       redFlags: post.redFlags as Array<{ label: string }> | null | undefined,
+      ratingSum: post.ratingSum,
+      ratingCount: post.ratingCount,
     }))
     isDemo = false
   } catch {
@@ -130,6 +133,9 @@ export default async function Home() {
                     </div>
                     <h3 className="pdm-display text-2xl font-bold leading-tight tracking-tight">“{post.title}”</h3>
                     <p className="mt-4 flex-1 text-[var(--pdm-dim)]">{post.excerpt}</p>
+                    <div className="mt-4">
+                      <Stars count={post.ratingCount ?? 0} size={16} value={ratingAverage(post)} />
+                    </div>
                     <div className="mt-5 flex flex-wrap gap-2">
                       <span className="pdm-pill px-3 py-2">{post.budget || 'Budget mysterieux'}</span>
                       <span className="pdm-pill px-3 py-2">{post.deadline || 'Delai flou'}</span>

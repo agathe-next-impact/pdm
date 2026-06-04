@@ -5,6 +5,11 @@ export const magicLinkSchema = z.object({
   displayName: z.string().trim().min(2).max(60).optional(),
 })
 
+export const rateSchema = z.object({
+  slug: z.string().trim().min(1).max(200),
+  rating: z.coerce.number().int().min(1).max(5),
+})
+
 export const postSchema = z.object({
   title: z.string().trim().min(8).max(120),
   excerpt: z.string().trim().min(20).max(280),

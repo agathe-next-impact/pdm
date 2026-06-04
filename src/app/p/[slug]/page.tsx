@@ -1,9 +1,11 @@
+import { cookies } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
 import { Header } from '@/components/Header'
 import { Merdometre } from '@/components/PdmMark'
-import { demoPosts, type PublicPost } from '@/lib/demo-posts'
+import { StarRating } from '@/components/StarRating'
+import { demoPosts, ratingAverage, type PublicPost } from '@/lib/demo-posts'
 import { getPayloadClient } from '@/lib/payload'
 
 export const dynamic = 'force-dynamic'
@@ -45,6 +47,8 @@ export default async function PostPage({
         budget: found.budget,
         deadline: found.deadline,
         redFlags: found.redFlags as Array<{ label: string }> | null | undefined,
+        ratingSum: found.ratingSum,
+        ratingCount: found.ratingCount,
       }
     }
   } catch {
@@ -54,6 +58,11 @@ export default async function PostPage({
   if (!post) notFound()
 
   const redFlags = post.redFlags
+  const cookieStore = await cookies()
+  const hasVoted = (cookieStore.get('pdm_votes')?.value ?? '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .includes(post.slug)
 
   return (
     <>
@@ -85,6 +94,22 @@ export default async function PostPage({
               ))}
             </div>
           ) : null}
+          <div className="mt-8 border-t border-[var(--pdm-border)] pt-6">
+            <p className="pdm-display text-lg font-bold tracking-tight">
+              Note ce projet de merde
+            </p>
+            <p className="pdm-mono mt-1 text-xs text-[var(--pdm-mute)]">
+              5 etoiles = chef-d&apos;oeuvre de l&apos;enfer. Un seul vote par projet.
+            </p>
+            <div className="mt-4">
+              <StarRating
+                average={ratingAverage(post)}
+                count={post.ratingCount ?? 0}
+                hasVoted={hasVoted}
+                slug={post.slug}
+              />
+            </div>
+          </div>
           <p className="pdm-mono mt-8 border-t border-[var(--pdm-border)] pt-5 text-sm text-[var(--pdm-mute)]">Signe: {post.authorName}</p>
           </div>
         </article>

@@ -104,5 +104,27 @@ export const Posts: CollectionConfig = {
       type: 'upload',
       relationTo: 'media',
     },
+    {
+      name: 'ratingSum',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Somme des votes communautaires (sur 5). Calcule automatiquement.',
+      },
+    },
+    {
+      name: 'ratingCount',
+      type: 'number',
+      defaultValue: 0,
+      min: 0,
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+        description: 'Nombre de votes recus.',
+      },
+    },
   ],
 }

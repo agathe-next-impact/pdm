@@ -8,6 +8,15 @@ export type PublicPost = {
   budget?: string | null
   deadline?: string | null
   redFlags?: Array<{ label: string }> | null
+  ratingSum?: number | null
+  ratingCount?: number | null
+}
+
+/** Average community rating (0 when nobody voted yet). */
+export function ratingAverage(post: Pick<PublicPost, 'ratingSum' | 'ratingCount'>) {
+  const count = post.ratingCount ?? 0
+  if (count <= 0) return 0
+  return (post.ratingSum ?? 0) / count
 }
 
 export const demoPosts: PublicPost[] = [
@@ -23,6 +32,8 @@ export const demoPosts: PublicPost[] = [
     budget: '500 EUR',
     deadline: '3 semaines',
     redFlags: [{ label: 'clone' }, { label: 'budget fixe' }, { label: 'admin maison' }],
+    ratingSum: 188,
+    ratingCount: 41,
   },
   {
     id: 'demo-singe',
@@ -36,6 +47,8 @@ export const demoPosts: PublicPost[] = [
     budget: '10% de la future boite',
     deadline: 'Demain',
     redFlags: [{ label: 'IA floue' }, { label: 'equity' }, { label: 'demo demain' }],
+    ratingSum: 132,
+    ratingCount: 27,
   },
   {
     id: 'demo-facebook',
@@ -49,5 +62,7 @@ export const demoPosts: PublicPost[] = [
     budget: 'A discuter',
     deadline: 'Avant le salon',
     redFlags: [{ label: 'refaire Facebook' }, { label: 'simple' }, { label: 'avant le salon' }],
+    ratingSum: 96,
+    ratingCount: 23,
   },
 ]
